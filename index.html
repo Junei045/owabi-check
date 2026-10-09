@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="個人情報流出の「お詫びメール」をよそおった偽メールを、質問に答えるだけで見分けるチェックツール（栄防犯協会）">
+<meta name="theme-color" content="#0D6670">
+<title>お詫びメール見分けチェック</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Maru+Gothic:wght@700;900&display=swap">
+<style>
+/* Layout: 一画面に一問。大きな文字と大きなボタンで、上から順に進む縦一列の構成 */
+:root{
+  --bg:#EEF2F2; --surface:#FFFFFF; --ink:#18262D; --muted:#3F5058; --line:#BFCBCE;
+  --accent:#0D6670; --accent-ink:#FFFFFF; --accent-soft:#DDEEEF;
+  --danger:#B1231B; --danger-bg:#FCE8E6;
+  --warn:#7D5200; --warn-bg:#FFF1CF;
+  --info:#1C557F; --info-bg:#E3EEF6;
+  --f-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","BIZ UDPGothic",sans-serif;
+  --f-body:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+  --base:20px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10181B; --surface:#192328; --ink:#EEF3F4; --muted:#B7C4C8; --line:#34434A;
+    --accent:#5EC3CB; --accent-ink:#08191C; --accent-soft:#183238;
+    --danger:#FF8C82; --danger-bg:#3A1613;
+    --warn:#F1C25A; --warn-bg:#33260A;
+    --info:#8DC4EC; --info-bg:#132838;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10181B; --surface:#192328; --ink:#EEF3F4; --muted:#B7C4C8; --line:#34434A;
+  --accent:#5EC3CB; --accent-ink:#08191C; --accent-soft:#183238;
+  --danger:#FF8C82; --danger-bg:#3A1613;
+  --warn:#F1C25A; --warn-bg:#33260A;
+  --info:#8DC4EC; --info-bg:#132838;
+  color-scheme:dark;
+}
+html.big{ --base:24px; }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:var(--base);line-height:1.75;}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.4}
+h1{font-size:1.6em;font-weight:900}
+h2{font-size:1.3em}
+h3{font-size:1.1em}
+p{margin:0}
+.top{display:flex;flex-direction:column;gap:8px}
+.top .lead{color:var(--muted)}
+.size{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85em;color:var(--muted)}
+.size button{font:inherit;font-weight:700;padding:6px 14px;border-radius:999px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.size button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+
+.rule{background:var(--danger-bg);border:3px solid var(--danger);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.rule strong{color:var(--danger);font-family:var(--f-display);font-size:1.15em}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tabs button{flex:1 1 180px;font:inherit;font-weight:700;font-size:.9em;padding:12px 10px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;min-height:56px}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:22px 18px;display:flex;flex-direction:column;gap:18px}
+.progress{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.bar{flex:1;height:10px;border-radius:5px;background:var(--accent-soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.q{font-family:var(--f-display);font-size:1.3em;font-weight:700;line-height:1.55}
+.hint{color:var(--muted);font-size:.9em}
+.ex{background:var(--bg);border-radius:10px;padding:10px 14px;font-size:.9em}
+.answers{display:flex;flex-direction:column;gap:12px}
+.answers button{font:inherit;font-weight:700;font-size:1.15em;min-height:68px;border-radius:14px;cursor:pointer;border:3px solid var(--accent);background:var(--surface);color:var(--ink)}
+.answers button.yes{background:var(--accent);color:var(--accent-ink)}
+.answers button.unk{border-color:var(--line);font-size:1em;min-height:60px}
+.back{align-self:flex-start;font:inherit;font-size:.9em;background:none;border:none;color:var(--accent);text-decoration:underline;cursor:pointer;padding:6px 0}
+
+.verdict{border-radius:14px;padding:18px;border:3px solid;display:flex;flex-direction:column;gap:8px}
+.verdict.red{background:var(--danger-bg);border-color:var(--danger)}
+.verdict.red h2{color:var(--danger)}
+.verdict.amber{background:var(--warn-bg);border-color:var(--warn)}
+.verdict.amber h2{color:var(--warn)}
+.verdict.blue{background:var(--info-bg);border-color:var(--info)}
+.verdict.blue h2{color:var(--info)}
+.reasons{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:1.5em;display:flex;flex-direction:column;gap:10px}
+.steps li::marker{font-weight:700;color:var(--accent)}
+.restart{font:inherit;font-weight:700;min-height:60px;border-radius:14px;border:3px solid var(--accent);background:var(--surface);color:var(--ink);cursor:pointer}
+
+.call{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.call div{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.call b{font-family:var(--f-display);font-size:1.6em;color:var(--accent);font-variant-numeric:tabular-nums;user-select:all}
+.call span{font-size:.85em;color:var(--muted)}
+
+textarea{width:100%;min-height:220px;font:inherit;font-size:.9em;line-height:1.6;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row button{flex:1 1 160px;font:inherit;font-weight:700;min-height:58px;border-radius:12px;cursor:pointer;border:3px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.row button.sub{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.found{display:flex;flex-direction:column;gap:10px}
+.hit{border-left:6px solid var(--danger);background:var(--danger-bg);padding:10px 14px;border-radius:0 10px 10px 0}
+.hit.w{border-left-color:var(--warn);background:var(--warn-bg)}
+.hit .t{font-weight:700}
+.hit .m{font-size:.85em;color:var(--muted);overflow-wrap:anywhere}
+mark{background:var(--warn-bg);color:var(--ink);border-bottom:2px solid var(--warn);padding:0 2px}
+.domains{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.domains li{border:2px solid var(--line);border-radius:10px;padding:8px 12px;overflow-wrap:anywhere;font-size:.9em}
+.domains code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
+.note{font-size:.85em;color:var(--muted)}
+footer{font-size:.8em;color:var(--muted);text-align:center}
+
+:focus-visible{outline:4px solid var(--warn);outline-offset:3px}
+@media (prefers-reduced-motion: reduce){ .bar i{transition:none} }
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.call a{color:inherit;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>お詫びメール見分けチェック</h1>
+    <p class="lead">「個人情報が流出しました」というお詫びメール。本物をまねた<b>にせメール</b>も届いています。質問に答えると、気をつける点がわかります。</p>
+    <div class="size" role="group" aria-label="文字の大きさ">
+      文字の大きさ
+      <button type="button" id="sz-n" aria-pressed="true">ふつう</button>
+      <button type="button" id="sz-b" aria-pressed="false">大きく</button>
+    </div>
+  </header>
+
+  <div class="rule">
+    <strong>まず、これだけは守りましょう</strong>
+    <p>メールの中のボタンやリンク（青い文字）は<b>押さない</b>。メールに書かれた電話番号にも<b>かけない</b>。</p>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" id="t-quiz" aria-selected="true">質問に答えて調べる</button>
+    <button type="button" role="tab" id="t-text" aria-selected="false">メールの文章で調べる</button>
+    <button type="button" role="tab" id="t-help" aria-selected="false">押してしまったとき</button>
+  </nav>
+
+  <!-- 質問 -->
+  <section class="panel" id="p-quiz" role="tabpanel" aria-labelledby="t-quiz"></section>
+
+  <!-- 文章チェック -->
+  <section class="panel" id="p-text" role="tabpanel" aria-labelledby="t-text" hidden>
+    <h2>メールの文章を貼りつけて調べる</h2>
+    <p class="hint">ご家族や地域の世話役の方が、代わりに調べるときに便利です。文章はこの画面の中だけで調べ、どこにも送りません。</p>
+    <label for="mail-text" class="note">メールの本文（件名や送り主もいっしょに貼るとより正確です）</label>
+    <textarea id="mail-text" placeholder="ここにメールの文章を貼りつけてください"></textarea>
+    <div class="row">
+      <button type="button" id="scan">調べる</button>
+      <button type="button" class="sub" id="sample">例文で試す</button>
+      <button type="button" class="sub" id="clear">消す</button>
+    </div>
+    <div id="scan-out" class="found" aria-live="polite"></div>
+  </section>
+
+  <!-- 押してしまったとき -->
+  <section class="panel" id="p-help" role="tabpanel" aria-labelledby="t-help" hidden>
+    <h2>リンクを押した・入力してしまったとき</h2>
+    <p class="hint">あわてなくて大丈夫です。早く動けば被害を防げることが多いです。当てはまるものを上から順に。</p>
+    <ol class="steps">
+      <li><b>カードの番号を入力した</b><br>カードの裏に書いてある電話番号でカード会社に電話し、「にせのサイトに入力した」と伝えて止めてもらいます。</li>
+      <li><b>パスワードを入力した</b><br>そのサービスのパスワードをすぐ変えます。同じパスワードをほかでも使っていれば、そちらも変えます。</li>
+      <li><b>銀行の口座番号や暗証番号を入力した</b><br>通帳やキャッシュカードに書いてある銀行の電話番号に連絡します。</li>
+      <li><b>アプリを入れてしまった</b><br>スマホでお金の操作をせず、家族やお店（携帯ショップ）に相談します。</li>
+      <li><b>押しただけで、何も入力していない</b><br>多くの場合はそのまま画面を閉じれば大丈夫です。メールは削除しましょう。</li>
+    </ol>
+    <h3>相談できるところ</h3>
+    <div class="call">
+      <div><a href="tel:188"><b>188</b></a><span>消費者ホットライン（「いやや」）<br>近くの消費生活センターにつながります</span></div>
+      <div><a href="tel:%239110"><b>#9110</b></a><span>警察相談専用電話<br>詐欺の被害や不安の相談に</span></div>
+    </div>
+    <p class="note">ひとりで悩まず、家族や町内会・自治会の役員にも声をかけてください。</p>
+  </section>
+
+  <footer>発行：栄防犯協会<br>このチェックは「本物」と保証するものではありません。迷ったら、メールのリンクを使わずに会社へ確認してください。</footer>
+</div>
+
+<script>
+(function(){
+  /* ---------- 文字サイズ ---------- */
+  var root=document.documentElement, szN=document.getElementById('sz-n'), szB=document.getElementById('sz-b');
+  function setSize(big){
+    root.classList.toggle('big',big);
+    szN.setAttribute('aria-pressed',String(!big)); szB.setAttribute('aria-pressed',String(big));
+    try{localStorage.setItem('owabi-big',big?'1':'0')}catch(e){}
+  }
+  try{ if(localStorage.getItem('owabi-big')==='1') setSize(true) }catch(e){}
+  szN.onclick=function(){setSize(false)}; szB.onclick=function(){setSize(true)};
+
+  /* ---------- タブ ---------- */
+  var tabs=['quiz','text','help'];
+  tabs.forEach(function(k){
+    document.getElementById('t-'+k).onclick=function(){
+      tabs.forEach(function(j){
+        document.getElementById('t-'+j).setAttribute('aria-selected',String(j===k));
+        document.getElementById('p-'+j).hidden=(j!==k);
+      });
+    };
+  });
+
+  /* ---------- 質問 ---------- */
+  // flag: どの答えで注意を出すか / level: red=にせの可能性が高い, amber=注意
+  var Q=[
+    {q:'そのメールを送ってきた会社（お店）を、あなたは使ったことがありますか？',
+     hint:'ネット通販、携帯電話、カード、電気・ガスなど。',
+     ans:['はい','いいえ','おぼえていない'], flag:{1:'amber',2:'amber'},
+     why:'使った覚えのない会社からの「お詫び」は、にせメールのことが多いです。'},
+    {q:'カード番号・暗証番号・パスワード・口座番号を「入力してください」と書いてありますか？',
+     ex:'例：「ご本人確認のため、カード情報をご入力ください」',
+     ans:['はい','いいえ','わからない'], flag:{0:'red',2:'amber'},
+     why:'本物のお詫びメールで、カード番号や暗証番号をメールから入力させることはまずありません。'},
+    {q:'「お詫び金」「返金」「補償金」を受け取るための手続きを求めていますか？',
+     ex:'例：「返金のお手続きはこちら」「補償金のお受け取りには登録が必要です」',
+     ans:['はい','いいえ','わからない'], flag:{0:'red',2:'amber'},
+     why:'お金がもらえる話でリンクを押させ、カードや口座の情報を盗むのが、にせメールのよくある手口です。'},
+    {q:'「24時間以内に」「今すぐ」「手続きしないと停止します」など、急がせる言葉がありますか？',
+     ans:['はい','いいえ','わからない'], flag:{0:'red'},
+     why:'急がせて考える時間をうばうのは、詐欺の決まった手口です。'},
+    {q:'「この番号にお電話ください」「このアプリを入れてください」と書いてありますか？',
+     ans:['はい','いいえ','わからない'], flag:{0:'red',2:'amber'},
+     why:'メールに書かれた電話番号やアプリは、詐欺グループにつながっていることがあります。'},
+    {q:'メールの中に「こちら」「ログイン」などのボタンやリンク（青い文字）がありますか？',
+     ans:['はい','いいえ','わからない'], flag:{0:'amber'},
+     why:'リンクの先がにせのページのことがあります。リンクは使わず、自分で会社のホームページを開きましょう。'},
+    {q:'その会社のホームページにも、同じお詫びのお知らせが出ていましたか？',
+     hint:'メールのリンクではなく、自分で会社名を検索して開いたホームページで確かめた場合に「はい」を選んでください。',
+     ans:['はい','いいえ','まだ見ていない'], flag:{1:'amber',2:'amber'},
+     whyBy:{1:'会社のホームページにお知らせがない「お詫びメール」は、にせメールの疑いがあります。',
+            2:'本物の流出なら、たいてい会社のホームページにお知らせが出ます。家族に頼んで一緒に確かめましょう。'}}
+  ];
+  var panel=document.getElementById('p-quiz'), answers=[], idx=0;
+
+  function el(tag,cls,html){var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e;}
+
+  function renderQ(){
+    var item=Q[idx]; panel.innerHTML='';
+    var pr=el('div','progress');
+    pr.appendChild(el('span',null,'質問 '+(idx+1)+' / '+Q.length));
+    var bar=el('div','bar'); var fill=el('i'); fill.style.width=((idx)/Q.length*100)+'%'; bar.appendChild(fill); pr.appendChild(bar);
+    panel.appendChild(pr);
+    var h=el('p','q'); h.textContent=item.q; h.id='qtext'; panel.appendChild(h);
+    if(item.hint) panel.appendChild(el('p','hint',item.hint));
+    if(item.ex){var ex=el('p','ex'); ex.textContent=item.ex; panel.appendChild(ex);}
+    var box=el('div','answers'); box.setAttribute('role','group'); box.setAttribute('aria-labelledby','qtext');
+    item.ans.forEach(function(a,i){
+      var b=el('button',i===0?'yes':(i===2?'unk':'')); b.type='button'; b.textContent=a;
+      b.onclick=function(){answers[idx]=i; idx++; idx<Q.length?renderQ():renderResult();};
+      box.appendChild(b);
+    });
+    panel.appendChild(box);
+    if(idx>0){var bk=el('button','back','← ひとつ前の質問にもどる'); bk.type='button'; bk.onclick=function(){idx--; renderQ();}; panel.appendChild(bk);}
+  }
+
+  function renderResult(){
+    var red=[], amber=[];
+    Q.forEach(function(item,i){
+      var lv=item.flag[answers[i]]; if(!lv) return;
+      var why=item.whyBy?item.whyBy[answers[i]]:item.why;
+      (lv==='red'?red:amber).push(why);
+    });
+    panel.innerHTML='';
+    var v;
+    if(red.length){
+      v=el('div','verdict red');
+      v.appendChild(el('h2',null,'にせメールの可能性が高いです'));
+      v.appendChild(el('p',null,'リンクを押したり、返信したりせず、<b>そのまま削除</b>してかまいません。'));
+    }else if(amber.length){
+      v=el('div','verdict amber');
+      v.appendChild(el('h2',null,'まだ安心できません'));
+      v.appendChild(el('p',null,'気になる点があります。下の「次にすること」で確かめてから判断しましょう。'));
+    }else{
+      v=el('div','verdict blue');
+      v.appendChild(el('h2',null,'あやしい点は見つかりませんでした'));
+      v.appendChild(el('p',null,'ただし、<b>本物と決まったわけではありません</b>。手続きをするときも、メールのリンクは使わず、自分で開いた会社のホームページから行いましょう。'));
+    }
+    panel.appendChild(v);
+    var list=red.concat(amber);
+    if(list.length){
+      panel.appendChild(el('h3',null,'見つかった気になる点'));
+      var ul=el('ul','reasons'); list.forEach(function(t){var li=el('li'); li.textContent=t; ul.appendChild(li);}); panel.appendChild(ul);
+    }
+    panel.appendChild(el('h3',null,'次にすること'));
+    var ol=el('ol','steps');
+    ['メールの中のリンクやボタンは押さない。返信もしない。',
+     '会社名を自分で検索して、<b>会社のホームページ</b>に同じお知らせがあるか見る。',
+     '問い合わせるときは、カードの裏・請求書・会社のホームページに書かれた<b>いつもの電話番号</b>を使う。',
+     'わからないときは、家族や町内会・自治会の役員に見てもらう。',
+     '不安なときは <b>188</b>（消費者ホットライン）や <b>#9110</b>（警察相談）に相談する。'
+    ].forEach(function(t){ol.appendChild(el('li',null,t));});
+    panel.appendChild(ol);
+    var again=el('button','restart','別のメールを調べる（最初から）'); again.type='button';
+    again.onclick=function(){answers=[]; idx=0; renderQ(); panel.scrollIntoView({block:'start'});};
+    panel.appendChild(again);
+    var bk=el('button','back','← 最後の質問にもどる'); bk.type='button'; bk.onclick=function(){idx=Q.length-1; renderQ();}; panel.appendChild(bk);
+    panel.scrollIntoView({block:'start'});
+  }
+  renderQ();
+
+  /* ---------- 文章チェック ---------- */
+  var RULES=[
+    {lv:'r',t:'カードや口座の情報を求めている',m:'本物のお詫びメールが、メールからカード番号や口座番号を入力させることはまずありません。',
+     re:/(カード番号|クレジットカード情報|カード情報|セキュリティ\s*コード|有効期限|暗証番号|口座番号|口座情報|キャッシュカード)/g},
+    {lv:'r',t:'パスワードやログインを求めている',m:'メールのリンクからログインさせて、パスワードを盗む手口があります。',
+     re:/(パスワード|ログイン|ID\s*と\s*パスワード|本人確認|アカウント(の)?確認|認証コード|ワンタイム)/g},
+    {lv:'r',t:'お金を受け取る・払う話がある',m:'「返金」「補償金」を理由に手続きさせるのは、にせメールのよくある手口です。',
+     re:/(お詫び金|おわび金|補償金|見舞金|返金|払い戻し|振込|振り込み|手数料|ギフトカード|電子マネー|ポイント付与)/g},
+    {lv:'r',t:'急がせる・おどす言葉がある',m:'考える時間をうばうのは詐欺の決まった手口です。',
+     re:/(\d+\s*時間以内|本日中|至急|直ちに|ただちに|速やかに|期限|停止|凍結|利用制限|失効|法的措置)/g},
+    {lv:'r',t:'電話やアプリを求めている',m:'メールに書かれた電話番号やアプリは、詐欺グループにつながっていることがあります。',
+     re:/(お電話ください|下記.{0,6}電話|フリーダイヤル|アプリをインストール|アプリをダウンロード|専用アプリ)/g},
+    {lv:'w',t:'リンクがある',m:'下の「リンク先の住所」を確かめてください。迷ったら押さないのがいちばんです。',
+     re:/(https?:\/\/[^\s<>"'）)」]+)/g}
+  ];
+  var SHORT=['bit.ly','t.co','tinyurl.com','is.gd','ow.ly','cutt.ly','x.gd','rebrand.ly','s.id','shorturl.at','t.ly'];
+  var ODD_TLD=['top','xyz','icu','cn','shop','buzz','vip','click','link','online','site','work','info','cyou','sbs','rest'];
+
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+  function hostOf(u){
+    var m=u.match(/^https?:\/\/([^\/?#:]+)/i); return m?m[1].toLowerCase():'';
+  }
+  function judgeHost(h){
+    var notes=[];
+    if(/^\d+\.\d+\.\d+\.\d+$/.test(h)) notes.push('会社名ではなく数字だけの住所です（あやしい）');
+    if(h.indexOf('xn--')>=0) notes.push('見た目をまねた特殊な文字が使われている可能性があります');
+    if(SHORT.indexOf(h)>=0) notes.push('短縮URLです。本当の行き先がわかりません');
+    var tld=h.split('.').pop(); if(ODD_TLD.indexOf(tld)>=0) notes.push('「.'+tld+'」で終わる住所は、大きな会社の正式なお知らせではあまり使われません');
+    if((h.match(/-/g)||[]).length>=2) notes.push('ハイフン（-）が多い住所は、本物に似せた住所のことがあります');
+    return notes;
+  }
+
+  var out=document.getElementById('scan-out'), ta=document.getElementById('mail-text');
+  document.getElementById('scan').onclick=function(){
+    var txt=ta.value.trim(); out.innerHTML='';
+    if(!txt){out.appendChild(el('p','note','上の枠にメールの文章を貼りつけてから「調べる」を押してください。')); return;}
+    var reds=0, hits=[];
+    RULES.forEach(function(r){
+      var found=txt.match(r.re); if(!found) return;
+      var uniq=found.filter(function(v,i,a){return a.indexOf(v)===i}).slice(0,6);
+      if(r.lv==='r') reds++;
+      hits.push({r:r,words:uniq});
+    });
+    var v;
+    if(reds>=2){ v=el('div','verdict red'); v.appendChild(el('h2',null,'にせメールの可能性が高いです')); v.appendChild(el('p',null,'にせメールによく出てくる言葉がいくつも見つかりました。リンクは押さず、削除してかまいません。')); }
+    else if(reds===1||hits.length){ v=el('div','verdict amber'); v.appendChild(el('h2',null,'気をつけてください')); v.appendChild(el('p',null,'気になる言葉が見つかりました。下の説明を読み、会社のホームページで確かめましょう。')); }
+    else { v=el('div','verdict blue'); v.appendChild(el('h2',null,'よくある危ない言葉は見つかりませんでした')); v.appendChild(el('p',null,'それでも本物とは限りません。「質問に答えて調べる」も試し、会社のホームページで確かめましょう。')); }
+    out.appendChild(v);
+    hits.forEach(function(h){
+      var d=el('div','hit'+(h.r.lv==='w'?' w':''));
+      d.appendChild(el('p','t',esc(h.r.t)));
+      d.appendChild(el('p',null,esc(h.r.m)));
+      if(h.r.lv!=='w') d.appendChild(el('p','m','見つかった言葉：'+h.words.map(function(w){return '<mark>'+esc(w)+'</mark>'}).join('、')));
+      out.appendChild(d);
+    });
+    var urls=(txt.match(/https?:\/\/[^\s<>"'）)」]+/g)||[]);
+    var hosts=urls.map(hostOf).filter(function(v,i,a){return v&&a.indexOf(v)===i});
+    if(hosts.length){
+      out.appendChild(el('h3',null,'リンク先の住所'));
+      out.appendChild(el('p','note','住所の最後の部分（「.co.jp」などの直前）が、その会社の本当のホームページと同じか比べてください。会社名が入っていても本物とは限りません。'));
+      var ul=el('ul','domains');
+      hosts.forEach(function(h){
+        var li=el('li'); var n=judgeHost(h);
+        li.innerHTML='<code>'+esc(h)+'</code>'+(n.length?'<br>⚠ '+n.map(esc).join('<br>⚠ '):'');
+        ul.appendChild(li);
+      });
+      out.appendChild(ul);
+    }
+    out.appendChild(el('p','note','この判定は言葉を探しているだけです。本物かどうかの保証はできません。'));
+  };
+  document.getElementById('sample').onclick=function(){
+    ta.value='【重要】個人情報流出に関するお詫びとご返金のお知らせ\n\nいつもご利用いただきありがとうございます。\nこのたび、弊社システムへの不正アクセスにより、お客様の個人情報が流出した可能性があることが判明いたしました。\nお詫びとして、補償金3,000円をお支払いいたします。\n\n下記よりカード情報をご入力のうえ、24時間以内にお手続きください。\n期限を過ぎますとアカウントを停止いたします。\n\nhttps://support-refund-center.xyz/login\n\n※本メールは送信専用です。';
+    document.getElementById('scan').click();
+  };
+  document.getElementById('clear').onclick=function(){ta.value=''; out.innerHTML=''; ta.focus();};
+})();
+</script>
+</body>
+</html>
