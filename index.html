@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="個人情報流出の「お詫びメール」をよそおった偽メールを、質問に答えるだけで見分けるチェックツール（栄防犯協会）">
-<meta name="theme-color" content="#0D6670">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>お詫びメール見分けチェック</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -105,17 +99,21 @@ mark{background:var(--warn-bg);color:var(--ink);border-bottom:2px solid var(--wa
 .domains li{border:2px solid var(--line);border-radius:10px;padding:8px 12px;overflow-wrap:anywhere;font-size:.9em}
 .domains code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
 .note{font-size:.85em;color:var(--muted)}
+.mail{border:2px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
+.mail .subj{font-weight:700;font-family:var(--f-display);font-size:1.05em}
+.mail .from{font-size:.85em;color:var(--muted)}
+.mail .lk{color:var(--info);text-decoration:underline;overflow-wrap:anywhere}
+.tag{display:inline-block;font-size:.8em;font-weight:700;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:2px 12px;align-self:flex-start}
+.fb{border-radius:12px;padding:14px 16px;border:3px solid;display:flex;flex-direction:column;gap:8px}
+.fb.ok{background:var(--info-bg);border-color:var(--info)}
+.fb.ng{background:var(--danger-bg);border-color:var(--danger)}
+.answers button:disabled{opacity:.55;cursor:default}
 footer{font-size:.8em;color:var(--muted);text-align:center}
 
 :focus-visible{outline:4px solid var(--warn);outline-offset:3px}
 @media (prefers-reduced-motion: reduce){ .bar i{transition:none} }
-[hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.call a{color:inherit;text-decoration:none}
 </style>
-</head>
-<body>
+
 <div class="wrap">
   <header class="top">
     <h1>お詫びメール見分けチェック</h1>
@@ -135,6 +133,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-a
   <nav class="tabs" role="tablist">
     <button type="button" role="tab" id="t-quiz" aria-selected="true">質問に答えて調べる</button>
     <button type="button" role="tab" id="t-text" aria-selected="false">メールの文章で調べる</button>
+    <button type="button" role="tab" id="t-practice" aria-selected="false">事例で練習する</button>
     <button type="button" role="tab" id="t-help" aria-selected="false">押してしまったとき</button>
   </nav>
 
@@ -155,6 +154,13 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-a
     <div id="scan-out" class="found" aria-live="polite"></div>
   </section>
 
+  <!-- 事例で練習 -->
+  <section class="panel" id="p-practice" role="tabpanel" aria-labelledby="t-practice" hidden>
+    <h2>にせメールの事例で練習する</h2>
+    <p class="hint">ここに出てくるメールは、全部<b>訓練用の作り話</b>です。情報流出のお知らせに便乗する手口を3つ用意しました。メールが届いたつもりで、「どうするのが安全か」を選んでください。リンクらしき文字は、押せないようにしてあります。</p>
+    <div id="practice-box" style="display:flex;flex-direction:column;gap:18px"></div>
+  </section>
+
   <!-- 押してしまったとき -->
   <section class="panel" id="p-help" role="tabpanel" aria-labelledby="t-help" hidden>
     <h2>リンクを押した・入力してしまったとき</h2>
@@ -168,13 +174,13 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-a
     </ol>
     <h3>相談できるところ</h3>
     <div class="call">
-      <div><a href="tel:188"><b>188</b></a><span>消費者ホットライン（「いやや」）<br>近くの消費生活センターにつながります</span></div>
-      <div><a href="tel:%239110"><b>#9110</b></a><span>警察相談専用電話<br>詐欺の被害や不安の相談に</span></div>
+      <div><b>188</b><span>消費者ホットライン（「いやや」）<br>近くの消費生活センターにつながります</span></div>
+      <div><b>#9110</b><span>警察相談専用電話<br>詐欺の被害や不安の相談に</span></div>
     </div>
     <p class="note">ひとりで悩まず、家族や町内会・自治会の役員にも声をかけてください。</p>
   </section>
 
-  <footer>発行：栄防犯協会<br>このチェックは「本物」と保証するものではありません。迷ったら、メールのリンクを使わずに会社へ確認してください。</footer>
+  <footer>このチェックは「本物」と保証するものではありません。迷ったら、メールのリンクを使わずに会社へ確認してください。</footer>
 </div>
 
 <script>
@@ -190,7 +196,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-a
   szN.onclick=function(){setSize(false)}; szB.onclick=function(){setSize(true)};
 
   /* ---------- タブ ---------- */
-  var tabs=['quiz','text','help'];
+  var tabs=['quiz','text','practice','help'];
   tabs.forEach(function(k){
     document.getElementById('t-'+k).onclick=function(){
       tabs.forEach(function(j){
@@ -374,7 +380,102 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-a
     document.getElementById('scan').click();
   };
   document.getElementById('clear').onclick=function(){ta.value=''; out.innerHTML=''; ta.focus();};
+  /* ---------- 事例で練習 ---------- */
+  var CASES=[
+    {tag:'便乗の手口 その1', subj:'【重要】パスワード再設定のお願い', from:'○○サービス サポート（名乗り）',
+     body:'いつもご利用いただきありがとうございます。\n先日の個人情報流出の件で、セキュリティ強化のため、パスワードの再設定をお願いしております。\n24時間以内に再設定しないと、アカウントが利用できなくなります。\n下のボタンからログインして、再設定してください。',
+     link:'▶ パスワードを再設定する（ボタンの見本・押せません）',
+     point:'急がせる言葉と、ログインの求めがあったら、まず疑います。本当に必要なら、公式アプリや公式ホームページにもお知らせが出ているはずです。',
+     choices:[
+       {t:'ボタンからログインして、パスワードを再設定する', ok:false, fb:'メールの中のボタンからログインさせるのは、パスワードを盗むための手口です。「24時間以内」と急がせるのも、決まったやり方です。'},
+       {t:'ボタンは押さず、自分で公式ホームページや公式アプリを開いて確かめる', ok:true, fb:'その通りです。再設定が必要かどうかは、メールの中からではなく、自分で開いた公式の場所で確かめます。'},
+       {t:'心配なので、メールに返信して本物か聞く', ok:false, fb:'にせメールに返信しても、本物かどうかは分かりません。返信先も詐欺グループにつながっていることがあります。'}
+     ]},
+    {tag:'便乗の手口 その2', subj:'お詫びとして防災セットを無償でお届けします', from:'○○ストア お客様窓口（名乗り）',
+     body:'このたびの情報流出では、ご迷惑をおかけし申し訳ございません。\nお詫びとして、防災セットを無償でお届けします。\n送料500円のみご負担ください。下のページで、送り先とカード情報をご入力ください。',
+     link:'▶ お届け先とカード情報を入力する（ページの見本・押せません）',
+     point:'お金がらみの話（無償・返金・送料）で個人情報やカード情報を求められたら、にせメールを疑います。',
+     choices:[
+       {t:'送料500円だけならと、カード情報を入力する', ok:false, fb:'「無償」「送料だけ」で油断させて、カード情報を盗む手口です。金額が小さくても、カード情報そのものが狙われています。'},
+       {t:'入力せず、そのまま閉じる。気になる場合は会社の公式ホームページで確かめる', ok:true, fb:'その通りです。本物のお詫びメールが、メールからカード情報を入力させることはまずありません。'},
+       {t:'送り先の住所と電話番号だけ入力する', ok:false, fb:'住所や電話番号も大切な個人情報です。メール経由のフォームには、個人情報を入れないのが鉄則です。'}
+     ]},
+    {tag:'便乗の手口 その3', subj:'登録情報の確認のお願い', from:'○○サービス 事務局（名乗り）',
+     body:'情報流出への対応として、登録情報が正しいか確認をお願いしております。\n下のフォームで、お名前・ご住所・お電話番号をご確認のうえ、送信してください。\n確認が済んでいないお客様は、サービスのご利用を制限する場合がございます。',
+     link:'▶ 登録情報を確認する（フォームの見本・押せません）',
+     point:'「確認のため」と言われても、メール経由で個人情報を出さないこと。電話をするときも、メールの中の番号は使いません。',
+     choices:[
+       {t:'フォームに住所や電話番号を入力して送信する', ok:false, fb:'流出の「確認」に見せかけて、住所や電話番号を集める手口です。集めた情報は、次の詐欺に使われるおそれがあります。'},
+       {t:'フォームは使わず、自分で公式ホームページを開いて、同じお知らせがあるか確かめる', ok:true, fb:'その通りです。確認が必要なら、メール経由ではなく、自分で開いた公式の場所から行います。'},
+       {t:'メールに書かれた電話番号にかけて確かめる', ok:false, fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。問い合わせは、カードの裏や請求書など、いつもの番号でかけます。'}
+     ]}
+  ];
+  var pbox=document.getElementById('practice-box'), pidx=0, pscore=0;
+
+  function renderCase(){
+    var c=CASES[pidx]; pbox.innerHTML='';
+    var pr=el('div','progress');
+    pr.appendChild(el('span',null,'事例 '+(pidx+1)+' / '+CASES.length));
+    var bar=el('div','bar'); var fill=el('i'); fill.style.width=(pidx/CASES.length*100)+'%'; bar.appendChild(fill); pr.appendChild(bar);
+    pbox.appendChild(pr);
+    pbox.appendChild(el('span','tag',esc(c.tag)+'（訓練用）'));
+    var mail=el('div','mail');
+    mail.appendChild(el('p','subj',esc(c.subj)));
+    mail.appendChild(el('p','from','送り主：'+esc(c.from)));
+    var bd=el('p'); bd.innerHTML=esc(c.body).replace(/\n/g,'<br>'); mail.appendChild(bd);
+    mail.appendChild(el('p','lk',esc(c.link)));
+    pbox.appendChild(mail);
+    pbox.appendChild(el('p','q','このメールが届いたら、どうするのが安全ですか？'));
+    var box=el('div','answers'); box.setAttribute('role','group');
+    c.choices.forEach(function(ch){
+      var b=el('button'); b.type='button'; b.textContent=ch.t;
+      b.onclick=function(){answerCase(ch,box);};
+      box.appendChild(b);
+    });
+    pbox.appendChild(box);
+    var fbSlot=el('div'); fbSlot.id='case-fb'; pbox.appendChild(fbSlot);
+  }
+
+  function answerCase(ch,box){
+    var btns=box.querySelectorAll('button');
+    btns.forEach(function(b){b.disabled=true;});
+    if(ch.ok) pscore++;
+    var slot=document.getElementById('case-fb');
+    var fb=el('div','fb '+(ch.ok?'ok':'ng'));
+    fb.appendChild(el('h3',null,ch.ok?'○ 安全な行動です':'× それは危ない行動です'));
+    fb.appendChild(el('p',null,esc(ch.fb)));
+    var c=CASES[pidx];
+    fb.appendChild(el('p',null,'<b>手口のポイント：</b>'+esc(c.point)));
+    slot.appendChild(fb);
+    var last=(pidx===CASES.length-1);
+    var nx=el('button','restart',last?'結果を見る':'次の事例へ'); nx.type='button';
+    nx.onclick=function(){ if(last){renderPResult();} else {pidx++; renderCase(); pbox.scrollIntoView({block:'start'});} };
+    slot.appendChild(nx);
+    slot.scrollIntoView({block:'nearest'});
+  }
+
+  function renderPResult(){
+    pbox.innerHTML='';
+    var v;
+    if(pscore===CASES.length){ v=el('div','verdict blue'); v.appendChild(el('h2',null,'3問とも、安全な行動が選べました')); v.appendChild(el('p',null,'本物の便乗メールが来ても、この調子なら大丈夫です。家族にも教えてあげてください。')); }
+    else if(pscore===2){ v=el('div','verdict amber'); v.appendChild(el('h2',null,'3問中 2問、正解です')); v.appendChild(el('p',null,'あと少しです。下の3つの約束を覚えておきましょう。')); }
+    else { v=el('div','verdict red'); v.appendChild(el('h2',null,'3問中 '+pscore+'問、正解です')); v.appendChild(el('p',null,'便乗メールは、本物そっくりに作られています。下の3つの約束を覚えて、もう一度練習してみましょう。')); }
+    pbox.appendChild(v);
+    pbox.appendChild(el('h3',null,'便乗メールへの3つの約束'));
+    var ol=el('ol','steps');
+    ['メールの中のリンクやボタンは押さない。返信もしない。',
+     '手続きや確認は、自分で開いた公式ホームページや公式アプリから行う。',
+     '問い合わせは、カードの裏や請求書など、いつもの電話番号で。メールの中の番号は使わない。'
+    ].forEach(function(t){ol.appendChild(el('li',null,t));});
+    pbox.appendChild(ol);
+    var again=el('button','restart','もう一度練習する'); again.type='button';
+    again.onclick=function(){pidx=0; pscore=0; renderCase(); pbox.scrollIntoView({block:'start'});};
+    pbox.appendChild(again);
+    pbox.scrollIntoView({block:'start'});
+  }
+  renderCase();
+
 })();
 </script>
-</body>
-</html>
+
+</body></html>
