@@ -157,7 +157,7 @@ footer{font-size:.8em;color:var(--muted);text-align:center}
   <!-- 事例で練習 -->
   <section class="panel" id="p-practice" role="tabpanel" aria-labelledby="t-practice" hidden>
     <h2>にせメールの事例で練習する</h2>
-    <p class="hint">ここに出てくるメールは、全部<b>訓練用の作り話</b>です。情報流出のお知らせに便乗する手口を3つ用意しました。メールが届いたつもりで、「どうするのが安全か」を選んでください。リンクらしき文字は、押せないようにしてあります。</p>
+    <p class="hint">ここに出てくるメールは、全部<b>訓練用の作り話</b>です。情報流出のお知らせに便乗する手口を4つ用意しました。メールが届いたつもりで、「どうするのが安全か」を選んでください。リンクらしき文字は、押せないようにしてあります。</p>
     <div id="practice-box" style="display:flex;flex-direction:column;gap:18px"></div>
   </section>
 
@@ -232,7 +232,7 @@ footer{font-size:.8em;color:var(--muted);text-align:center}
      why:'リンクの先がにせのページのことがあります。リンクは使わず、自分で会社のホームページを開きましょう。'},
     {q:'その会社のホームページにも、同じお詫びのお知らせが出ていましたか？',
      hint:'メールのリンクではなく、自分で会社名を検索して開いたホームページで確かめた場合に「はい」を選んでください。',
-     ans:['はい','いいえ','まだ見ていない'], flag:{1:'amber',2:'amber'},
+     ans:['はい','いいえ','まだ見ていない'], flag:{1:'amber',2:'unk'},
      whyBy:{1:'会社のホームページにお知らせがない「お詫びメール」は、にせメールの疑いがあります。',
             2:'本物の流出なら、たいてい会社のホームページにお知らせが出ます。家族に頼んで一緒に確かめましょう。'}}
   ];
@@ -259,11 +259,14 @@ footer{font-size:.8em;color:var(--muted);text-align:center}
     if(idx>0){var bk=el('button','back','← ひとつ前の質問にもどる'); bk.type='button'; bk.onclick=function(){idx--; renderQ();}; panel.appendChild(bk);}
   }
 
+  // 「わからない」案：危険信号ではなく「確認が必要」として別枠で表示する
   function renderResult(){
-    var red=[], amber=[];
+    var red=[], amber=[], unk=[];
     Q.forEach(function(item,i){
-      var lv=item.flag[answers[i]]; if(!lv) return;
+      var lv=item.flag[answers[i]]; 
       var why=item.whyBy?item.whyBy[answers[i]]:item.why;
+      if(item.ans[answers[i]]==='わからない'||lv==='unk'){ unk.push(why); return; }
+      if(!lv) return;
       (lv==='red'?red:amber).push(why);
     });
     panel.innerHTML='';
@@ -276,6 +279,10 @@ footer{font-size:.8em;color:var(--muted);text-align:center}
       v=el('div','verdict amber');
       v.appendChild(el('h2',null,'まだ安心できません'));
       v.appendChild(el('p',null,'気になる点があります。下の「次にすること」で確かめてから判断しましょう。'));
+    }else if(unk.length){
+      v=el('div','verdict amber');
+      v.appendChild(el('h2',null,'わからないときは、進まないのが正解です'));
+      v.appendChild(el('p',null,'「わからない」と答えた項目があります。家族や公式窓口で確かめるまでは、リンクを押したり手続きをしたりしないでください。'));
     }else{
       v=el('div','verdict blue');
       v.appendChild(el('h2',null,'あやしい点は見つかりませんでした'));
@@ -286,6 +293,10 @@ footer{font-size:.8em;color:var(--muted);text-align:center}
     if(list.length){
       panel.appendChild(el('h3',null,'見つかった気になる点'));
       var ul=el('ul','reasons'); list.forEach(function(t){var li=el('li'); li.textContent=t; ul.appendChild(li);}); panel.appendChild(ul);
+    }
+    if(unk.length){
+      panel.appendChild(el('h3',null,'わからなかった点（確かめるまで進まない）'));
+      var ul2=el('ul','reasons'); unk.forEach(function(t){var li=el('li'); li.textContent=t; ul2.appendChild(li);}); panel.appendChild(ul2);
     }
     panel.appendChild(el('h3',null,'次にすること'));
     var ol=el('ol','steps');
@@ -408,6 +419,16 @@ footer{font-size:.8em;color:var(--muted);text-align:center}
        {t:'フォームに住所や電話番号を入力して送信する', ok:false, fb:'流出の「確認」に見せかけて、住所や電話番号を集める手口です。集めた情報は、次の詐欺に使われるおそれがあります。'},
        {t:'フォームは使わず、自分で公式ホームページを開いて、同じお知らせがあるか確かめる', ok:true, fb:'その通りです。確認が必要なら、メール経由ではなく、自分で開いた公式の場所から行います。'},
        {t:'メールに書かれた電話番号にかけて確かめる', ok:false, fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。問い合わせは、カードの裏や請求書など、いつもの番号でかけます。'}
+     ]},
+    {tag:'便乗の手口 その4', subj:'予約情報の確認とお詫びのお知らせ', from:'日本航空 カスタマーサポート（名乗り）',
+     note:'これは実際に確認された偽メールではありません。2026年10月にJALが発表した「予約情報が外部から見られた可能性」と、その注意喚起をもとにした想定パターンです。メールに出てくる予約内容は、訓練用に作った架空のものです。',
+     body:'○○ ○○ 様\n\nいつもご利用いただきありがとうございます。\nこのたび、弊社の旅客サービスシステムへの不正アクセスにより、お客様のご予約情報が外部から見られた可能性があることが判明いたしました。深くお詫び申し上げます。\n\n【お客様のご予約】\n予約番号：ABC123\n搭乗日：11月15日\n搭乗区間：東京（羽田）→ 福岡\n\nお客様のご予約に間違いがないか、下のボタンからご確認ください。ご都合が変わった場合は「返金手続きはこちら」からお手続きいただけます。',
+     link:'▶ 予約の確認はこちら／返金手続きはこちら（ボタンの見本・押せません）',
+     point:'メールに書かれた予約番号や搭乗日が正しくても、本物の証拠にはなりません。流出した本当の予約情報が、そのまま使われている場合があるからです。確認は、メールの中のリンクや電話番号を使わず、自分で公式の場所へ行くのが鉄則です。',
+     choices:[
+       {t:'ボタン（リンク）を押して、予約を確認する', ok:false, fb:'このメールは、流出した本当の予約情報を使って作られているかもしれません。予約内容が正しく書かれていても、本物だという証拠にはなりません。ボタンから入ると、にせのページでログイン情報などを盗まれるおそれがあります。'},
+       {t:'メールに書かれた電話番号に問い合わせる', ok:false, fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。問い合わせは、公式ホームページや予約の控えなど、いつもの連絡先で行います。'},
+       {t:'リンクを押さず、JALの公式アプリや、自分でブックマークした公式サイトから予約を確認する', ok:true, fb:'その通りです。予約の確認は、メールの中からではなく、自分で開いた公式アプリや公式ホームページから行います。内容が正しく書かれたメールほど、本物らしく見えるので注意が必要です。'}
      ]}
   ];
   var pbox=document.getElementById('practice-box'), pidx=0, pscore=0;
@@ -419,6 +440,7 @@ footer{font-size:.8em;color:var(--muted);text-align:center}
     var bar=el('div','bar'); var fill=el('i'); fill.style.width=(pidx/CASES.length*100)+'%'; bar.appendChild(fill); pr.appendChild(bar);
     pbox.appendChild(pr);
     pbox.appendChild(el('span','tag',esc(c.tag)+'（訓練用）'));
+    if(c.note) pbox.appendChild(el('p','hint',esc(c.note)));
     var mail=el('div','mail');
     mail.appendChild(el('p','subj',esc(c.subj)));
     mail.appendChild(el('p','from','送り主：'+esc(c.from)));
@@ -457,9 +479,9 @@ footer{font-size:.8em;color:var(--muted);text-align:center}
   function renderPResult(){
     pbox.innerHTML='';
     var v;
-    if(pscore===CASES.length){ v=el('div','verdict blue'); v.appendChild(el('h2',null,'3問とも、安全な行動が選べました')); v.appendChild(el('p',null,'本物の便乗メールが来ても、この調子なら大丈夫です。家族にも教えてあげてください。')); }
-    else if(pscore===2){ v=el('div','verdict amber'); v.appendChild(el('h2',null,'3問中 2問、正解です')); v.appendChild(el('p',null,'あと少しです。下の3つの約束を覚えておきましょう。')); }
-    else { v=el('div','verdict red'); v.appendChild(el('h2',null,'3問中 '+pscore+'問、正解です')); v.appendChild(el('p',null,'便乗メールは、本物そっくりに作られています。下の3つの約束を覚えて、もう一度練習してみましょう。')); }
+    if(pscore===CASES.length){ v=el('div','verdict blue'); v.appendChild(el('h2',null,CASES.length+'問とも、安全な行動が選べました')); v.appendChild(el('p',null,'本物の便乗メールが来ても、この調子なら大丈夫です。家族にも教えてあげてください。')); }
+    else if(pscore===CASES.length-1){ v=el('div','verdict amber'); v.appendChild(el('h2',null,CASES.length+'問中 '+(CASES.length-1)+'問、正解です')); v.appendChild(el('p',null,'あと少しです。下の3つの約束を覚えておきましょう。')); }
+    else { v=el('div','verdict red'); v.appendChild(el('h2',null,CASES.length+'問中 '+pscore+'問、正解です')); v.appendChild(el('p',null,'便乗メールは、本物そっくりに作られています。下の3つの約束を覚えて、もう一度練習してみましょう。')); }
     pbox.appendChild(v);
     pbox.appendChild(el('h3',null,'便乗メールへの3つの約束'));
     var ol=el('ol','steps');
